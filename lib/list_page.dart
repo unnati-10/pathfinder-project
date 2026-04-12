@@ -1,93 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ListPage extends StatelessWidget {
   final String category;
 
-  const ListPage({
-    super.key,
-    required this.category,
-  });
-
-  List<Map<String, String>> getItems() {
-    final allItems = [
-      {
-        "category": "Food",
-        "name": "Rice Pack",
-        "location": "2 km away",
-        "user": "Rahul",
-        "time": "1 hour ago",
-        "image": "assets/images/food.png",
-      },
-      {
-        "category": "Food",
-        "name": "Vegetable Box",
-        "location": "1.5 km away",
-        "user": "Anjali",
-        "time": "30 mins ago",
-        "image": "assets/images/food.png",
-      },
-      {
-        "category": "Clothes",
-        "name": "Winter Jacket",
-        "location": "3 km away",
-        "user": "Sneha",
-        "time": "2 hours ago",
-        "image": "assets/images/clothes.png",
-      },
-      {
-        "category": "Clothes",
-        "name": "Kids Dress",
-        "location": "4 km away",
-        "user": "Aman",
-        "time": "45 mins ago",
-        "image": "assets/images/clothes.png",
-      },
-      {
-        "category": "Books",
-        "name": "School Books",
-        "location": "1 km away",
-        "user": "Priya",
-        "time": "20 mins ago",
-        "image": "assets/images/books.png",
-      },
-      {
-        "category": "Books",
-        "name": "Story Books",
-        "location": "2.5 km away",
-        "user": "Kiran",
-        "time": "3 hours ago",
-        "image": "assets/images/books.png",
-      },
-      {
-        "category": "Electronics",
-        "name": "Table Lamp",
-        "location": "5 km away",
-        "user": "Vikas",
-        "time": "1 day ago",
-        "image": "assets/images/electronics.png",
-      },
-      {
-        "category": "Electronics",
-        "name": "Old Mobile",
-        "location": "2 km away",
-        "user": "Deepa",
-        "time": "4 hours ago",
-        "image": "assets/images/electronics.png",
-      },
-    ];
-
-    return allItems.where((item) => item["category"] == category).toList();
-  }
+  const ListPage({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
-    final items = getItems();
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F2FF),
+      backgroundColor: const Color(0xFFF3EFFA),
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFF6F35C8),
+        centerTitle: true,
         title: Text(
           "$category Items",
           style: const TextStyle(
@@ -95,54 +20,88 @@ class ListPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: items.isEmpty
-          ? const Center(
-              child: Text(
-                "No items available",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
+      body: StreamBuilder<QuerySnapshot>(
+        // 🔥 FIXED STREAM (removed orderBy error)
+        stream: FirebaseFirestore.instance
+            .collection('donations')
+            .where('category', isEqualTo: category)
+            .snapshots(),
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF6F35C8),
+              ),
+            );
+          }
+
+          // 🔥 SHOW REAL ERROR
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                "Error: ${snapshot.error}",
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                "No items found",
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          final docs = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(10),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final data = docs[index].data() as Map<String, dynamic>;
+
+              final name = data['name'] ?? 'No Name';
+              final location = data['location'] ?? 'No Location';
+              final user = data['name'] ?? 'Unknown';
+              final description = data['description'] ?? '';
+              final quantity = data['quantity'] ?? '';
+              final phone = data['phone'] ?? '';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F1F1),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          height: 85,
-                          width: 85,
+                          width: 52,
+                          height: 52,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEDE7F6),
-                            borderRadius: BorderRadius.circular(16),
+                            color: const Color(0xFFFFF3E0),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              item["image"]!,
-                              fit: BoxFit.cover,
-                            ),
+                          child: const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 34,
+                            color: Colors.brown,
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -151,87 +110,53 @@ class ListPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item["name"]!,
+                                name,
                                 style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                   color: Colors.black87,
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              Text(
-                                "📍 ${item["location"]}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "👤 ${item["user"]}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "⏰ ${item["time"]}",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.deepPurple,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              "Requested ${item["name"]}",
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text("Request"),
+                                  const Icon(Icons.location_on,
+                                      size: 14, color: Colors.redAccent),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    location,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.deepPurple,
-                                        side: const BorderSide(
-                                          color: Colors.deepPurple,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              "Viewing ${item["name"]}",
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text("View"),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.person,
+                                      size: 14, color: Colors.blueGrey),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    user,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.shopping_bag, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "Qty: $quantity",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -241,10 +166,85 @@ class ListPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
-            ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6F35C8),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              minimumSize: const Size(double.infinity, 38),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Request sent for $name"),
+                                ),
+                              );
+                            },
+                            child: const Text("Request"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF6F35C8),
+                              side: const BorderSide(
+                                color: Color(0xFF6F35C8),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              minimumSize: const Size(double.infinity, 38),
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text(name),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text("Category: $category"),
+                                        Text("Description: $description"),
+                                        Text("Location: $location"),
+                                        Text("Quantity: $quantity"),
+                                        Text("Phone: $phone"),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("Close"),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text("View"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

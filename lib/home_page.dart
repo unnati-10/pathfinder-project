@@ -4,6 +4,7 @@ import 'receive_page.dart';
 import 'form_page.dart';
 import 'list_page.dart';
 import 'dashboard_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,54 +14,90 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int selectedIndex = 0;
+  final TextEditingController searchController = TextEditingController();
 
-  /// 🔥 CATEGORIES WITH ICONS (NO IMAGE ISSUE)
   final List<Map<String, dynamic>> categories = [
-    {
-      "title": "Food",
-      "icon": Icons.fastfood_outlined,
-    },
-    {
-      "title": "Clothes",
-      "icon": Icons.checkroom_outlined,
-    },
-    {
-      "title": "Books",
-      "icon": Icons.menu_book_outlined,
-    },
-    {
-      "title": "Devices",
-      "icon": Icons.devices_outlined,
-    },
+    {"title": "Food", "icon": Icons.fastfood_outlined},
+    {"title": "Clothes", "icon": Icons.checkroom_outlined},
+    {"title": "Books", "icon": Icons.menu_book_outlined},
+    {"title": "Devices", "icon": Icons.devices_outlined},
   ];
 
-  final List<Map<String, String>> recentActivities = [
-    {
-      "title": "Food donation added",
-      "subtitle": "2 mins ago",
-    },
-    {
-      "title": "New receive request",
-      "subtitle": "10 mins ago",
-    },
-    {
-      "title": "Books pickup completed",
-      "subtitle": "1 hour ago",
-    },
-  ];
+  String searchText = '';
+
+  List<Map<String, dynamic>> get filteredCategories {
+    if (searchText.trim().isEmpty) return categories;
+
+    return categories.where((item) {
+      final title = item["title"].toString().toLowerCase();
+      return title.contains(searchText.toLowerCase());
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> get filteredQuickActions {
+    final actions = [
+      {
+        "title": "Donate",
+        "icon": Icons.volunteer_activism_outlined,
+        "page": const DonatePage(),
+      },
+      {
+        "title": "Receive",
+        "icon": Icons.inventory_2_outlined,
+        "page": const ReceivePage(),
+      },
+    ];
+
+    if (searchText.trim().isEmpty) return actions;
+
+    return actions.where((item) {
+      final title = item["title"].toString().toLowerCase();
+      return title.contains(searchText.toLowerCase());
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> get filteredManageItems {
+    final items = [
+      {
+        "title": "Dashboard",
+        "icon": Icons.dashboard_outlined,
+        "page": const DashboardPage(),
+      },
+      {
+        "title": "Form",
+        "icon": Icons.description_outlined,
+        "page": const FormPage(),
+      },
+    ];
+
+    if (searchText.trim().isEmpty) return items;
+
+    return items.where((item) {
+      final title = item["title"].toString().toLowerCase();
+      return title.contains(searchText.toLowerCase());
+    }).toList();
+  }
+
+  bool get hasSearchResults {
+    return filteredQuickActions.isNotEmpty ||
+        filteredCategories.isNotEmpty ||
+        filteredManageItems.isNotEmpty;
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F1FB),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-
-              /// 🔥 TOP SECTION
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
@@ -91,162 +128,188 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-                        const Icon(Icons.person, color: Colors.white),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ProfilePage(),
+                              ),
+                            );
+                          },
+                          child: const CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: Icon(
+                              Icons.person,
+                              color: Color(0xFF7B1FD3),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    /// SEARCH BAR
                     Container(
-                      height: 45,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      height: 50,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.search, color: Colors.black45),
-                          SizedBox(width: 8),
-                          Text("Search...", style: TextStyle(color: Colors.black45)),
-                        ],
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) {
+                          setState(() {
+                            searchText = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          hintText: "Search here...",
+                          prefixIcon: Icon(Icons.search),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 14),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-
-              /// BODY
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// 🔥 QUICK ACTIONS
-                    const Text(
-                      "Quick Actions",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _mainActionCard(
-                            title: "Donate",
-                            icon: Icons.volunteer_activism_outlined,
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => const DonatePage()));
-                            },
+                child: searchText.trim().isNotEmpty && !hasSearchResults
+                    ? Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Text(
+                          "No results found",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _mainActionCard(
-                            title: "Receive",
-                            icon: Icons.inventory_2_outlined,
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => const ReceivePage()));
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// 🔥 CATEGORIES
-                    const Text(
-                      "Categories",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: categories.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemBuilder: (context, index) {
-                        final item = categories[index];
-
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ListPage(category: item["title"]),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (filteredQuickActions.isNotEmpty) ...[
+                            const Text(
+                              "Quick Actions",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                          child: _categoryCard(
-                            title: item["title"],
-                            icon: item["icon"],
-                          ),
-                        );
-                      },
-                    ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: filteredQuickActions.map((item) {
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: item == filteredQuickActions.last
+                                          ? 0
+                                          : 10,
+                                    ),
+                                    child: _mainActionCard(
+                                      title: item["title"] as String,
+                                      icon: item["icon"] as IconData,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                item["page"] as Widget,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                          if (filteredCategories.isNotEmpty) ...[
+                            const Text(
+                              "Categories",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: filteredCategories.length,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
+                              itemBuilder: (context, index) {
+                                final item = filteredCategories[index];
 
-                    const SizedBox(height: 20),
-
-                    /// 🔥 MANAGE
-                    const Text(
-                      "Manage",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _smallCard(
-                            title: "Dashboard",
-                            icon: Icons.dashboard_outlined,
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => const DashboardPage()));
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _smallCard(
-                            title: "Form",
-                            icon: Icons.description_outlined,
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => const FormPage()));
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// 🔥 RECENT
-                    const Text(
-                      "Recent Activity",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    ...recentActivities.map(
-                      (item) => ListTile(
-                        leading: const Icon(Icons.history),
-                        title: Text(item["title"]!),
-                        subtitle: Text(item["subtitle"]!),
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ListPage(
+                                          category: item["title"] as String,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: _categoryCard(
+                                    title: item["title"] as String,
+                                    icon: item["icon"] as IconData,
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                          if (filteredManageItems.isNotEmpty) ...[
+                            const Text(
+                              "Manage",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: filteredManageItems.map((item) {
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: item == filteredManageItems.last
+                                          ? 0
+                                          : 10,
+                                    ),
+                                    child: _smallCard(
+                                      title: item["title"] as String,
+                                      icon: item["icon"] as IconData,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                item["page"] as Widget,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
@@ -255,7 +318,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// 🔥 MAIN CARD
   Widget _mainActionCard({
     required String title,
     required IconData icon,
@@ -263,6 +325,7 @@ class _HomePageState extends State<HomePage> {
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -273,14 +336,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(icon, size: 30, color: const Color(0xFF7B1FD3)),
             const SizedBox(height: 10),
-            Text(title),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// 🔥 CATEGORY CARD
   Widget _categoryCard({
     required String title,
     required IconData icon,
@@ -295,13 +360,16 @@ class _HomePageState extends State<HomePage> {
         children: [
           Icon(icon, size: 30, color: const Color(0xFF7B1FD3)),
           const SizedBox(height: 6),
-          Text(title),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
         ],
       ),
     );
   }
 
-  /// 🔥 SMALL CARD
   Widget _smallCard({
     required String title,
     required IconData icon,
@@ -309,6 +377,7 @@ class _HomePageState extends State<HomePage> {
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -319,7 +388,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(icon, color: const Color(0xFF7B1FD3)),
             const SizedBox(height: 6),
-            Text(title),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),

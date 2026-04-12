@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class DonatePage extends StatefulWidget {
@@ -10,6 +11,8 @@ class DonatePage extends StatefulWidget {
 class _DonatePageState extends State<DonatePage> {
   final _formKey = GlobalKey<FormState>();
 
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController itemNameController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
@@ -18,8 +21,67 @@ class _DonatePageState extends State<DonatePage> {
   String selectedCategory = 'Food';
   String selectedCondition = 'Good';
 
+  bool isLoading = false;
+
   final List<String> categories = ['Food', 'Clothes', 'Books', 'Electronics'];
   final List<String> conditions = ['New', 'Good', 'Used'];
+
+  Future<void> saveDonation() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('donations').add({
+        'name': nameController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'category': selectedCategory,
+        'description': itemNameController.text.trim(),
+        'location': locationController.text.trim(),
+        'quantity': quantityController.text.trim(),
+        'condition': selectedCondition,
+        'expiryDate': expiryController.text.trim(),
+        'time': FieldValue.serverTimestamp(),
+      });
+
+      nameController.clear();
+      phoneController.clear();
+      itemNameController.clear();
+      quantityController.clear();
+      locationController.clear();
+      expiryController.clear();
+
+      setState(() {
+        selectedCategory = 'Food';
+        selectedCondition = 'Good';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Donation submitted successfully")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    itemNameController.dispose();
+    quantityController.dispose();
+    locationController.dispose();
+    expiryController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +128,22 @@ class _DonatePageState extends State<DonatePage> {
                   ),
                 ),
                 const SizedBox(height: 18),
-
-                _buildLabel("Item Name"),
+                _buildLabel("Name"),
+                _buildTextField(
+                  controller: nameController,
+                  hint: "Enter your name",
+                ),
+                _buildLabel("Phone"),
+                _buildTextField(
+                  controller: phoneController,
+                  hint: "Enter phone number",
+                  keyboardType: TextInputType.phone,
+                ),
+                _buildLabel("Item Description"),
                 _buildTextField(
                   controller: itemNameController,
-                  hint: "Enter item name",
+                  hint: "Enter item details",
                 ),
-
                 _buildLabel("Category"),
                 _buildDropdown(
                   value: selectedCategory,
@@ -83,14 +154,12 @@ class _DonatePageState extends State<DonatePage> {
                     });
                   },
                 ),
-
                 _buildLabel("Quantity"),
                 _buildTextField(
                   controller: quantityController,
                   hint: "Enter quantity",
                   keyboardType: TextInputType.number,
                 ),
-
                 _buildLabel("Condition"),
                 _buildDropdown(
                   value: selectedCondition,
@@ -101,19 +170,16 @@ class _DonatePageState extends State<DonatePage> {
                     });
                   },
                 ),
-
-                _buildLabel("Pickup Location"),
+                _buildLabel("Location"),
                 _buildTextField(
                   controller: locationController,
                   hint: "Enter pickup location",
                 ),
-
                 _buildLabel("Expiry Date (for food)"),
                 _buildTextField(
                   controller: expiryController,
                   hint: "Optional",
                 ),
-
                 const SizedBox(height: 22),
                 SizedBox(
                   width: double.infinity,
@@ -125,25 +191,19 @@ class _DonatePageState extends State<DonatePage> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Donation submitted successfully"),
+                    onPressed: isLoading ? null : saveDonation,
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Donate Now",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Donate Now",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -184,7 +244,8 @@ class _DonatePageState extends State<DonatePage> {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFFF7F4FB),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -204,7 +265,8 @@ class _DonatePageState extends State<DonatePage> {
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFF7F4FB),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
