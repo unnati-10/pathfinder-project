@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "738789205434",
+    "project_id": "pathfinder-project-b212c",
+    "storage_bucket": "pathfinder-project-b212c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738789205434:android:ad68fc3ec2cb0e96d52983",
+        "android_client_info": {
+          "package_name": "com.company.OneFinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDum6d94l6wEeJf0UcVQwwX3bmZJwFtSSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738789205434:android:080b96b73ecd6819d52983",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDum6d94l6wEeJf0UcVQwwX3bmZJwFtSSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738789205434:android:fa7221479df83a3fd52983",
+        "android_client_info": {
+          "package_name": "com.unnati.onefinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDum6d94l6wEeJf0UcVQwwX3bmZJwFtSSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
