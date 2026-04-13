@@ -36,7 +36,7 @@ class ProfilePage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                   ),
                 ],
@@ -44,7 +44,6 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  /// PROFILE ICON
                   const CircleAvatar(
                     radius: 40,
                     backgroundColor: Color(0xFF7B1FD3),
@@ -54,10 +53,7 @@ class ProfilePage extends StatelessWidget {
                       size: 40,
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  /// NAME
                   Text(
                     name,
                     style: const TextStyle(
@@ -65,10 +61,7 @@ class ProfilePage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 4),
-
-                  /// TAGLINE
                   const Text(
                     "OneFinder User ❤️",
                     style: TextStyle(
@@ -76,20 +69,11 @@ class ProfilePage extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
-
                   const SizedBox(height: 18),
-
-                  /// EMAIL BOX
                   _infoBox(Icons.email, email),
-
                   const SizedBox(height: 10),
-
-                  /// PHONE BOX
                   _infoBox(Icons.phone, phone),
-
                   const SizedBox(height: 20),
-
-                  /// EDIT PROFILE BUTTON
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -105,7 +89,8 @@ class ProfilePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const EditProfilePage()),
+                            builder: (_) => const EditProfilePage(),
+                          ),
                         );
                       },
                       child: const Text(
@@ -117,10 +102,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
-                  /// AI HELP BUTTON
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -149,15 +131,14 @@ class ProfilePage extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AiChatPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const AiChatPage(),
+                          ),
                         );
                       },
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  /// LOGOUT BUTTON
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -171,6 +152,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       onPressed: () async {
                         await FirebaseAuth.instance.signOut();
+                        if (!context.mounted) return;
                         Navigator.pop(context);
                       },
                       icon: const Icon(
@@ -195,7 +177,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// INFO BOX
   Widget _infoBox(IconData icon, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(

@@ -18,12 +18,23 @@ class _FormPageState extends State<FormPage> {
   final locationController = TextEditingController();
   final descriptionController = TextEditingController();
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    itemController.dispose();
+    quantityController.dispose();
+    locationController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
+
   void submitForm() {
-    if (nameController.text.isEmpty ||
-        phoneController.text.isEmpty ||
-        itemController.text.isEmpty ||
-        quantityController.text.isEmpty ||
-        locationController.text.isEmpty) {
+    if (nameController.text.trim().isEmpty ||
+        phoneController.text.trim().isEmpty ||
+        itemController.text.trim().isEmpty ||
+        quantityController.text.trim().isEmpty ||
+        locationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all required fields")),
       );
@@ -47,7 +58,6 @@ class _FormPageState extends State<FormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F1FB),
-
       appBar: AppBar(
         backgroundColor: const Color(0xFF7B1FD3),
         elevation: 0,
@@ -57,7 +67,6 @@ class _FormPageState extends State<FormPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Container(
@@ -79,17 +88,19 @@ class _FormPageState extends State<FormPage> {
               const SizedBox(height: 18),
 
               /// TYPE
-              DropdownButtonFormField(
-                value: selectedType,
+              DropdownButtonFormField<String>(
+                initialValue: selectedType,
                 decoration: _inputDecoration("Select Type"),
                 items: const [
                   DropdownMenuItem(value: "Donate", child: Text("Donate")),
                   DropdownMenuItem(value: "Receive", child: Text("Receive")),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    selectedType = value!;
-                  });
+                  if (value != null) {
+                    setState(() {
+                      selectedType = value;
+                    });
+                  }
                 },
               ),
 
@@ -113,8 +124,8 @@ class _FormPageState extends State<FormPage> {
               const SizedBox(height: 14),
 
               /// CATEGORY
-              DropdownButtonFormField(
-                value: selectedCategory,
+              DropdownButtonFormField<String>(
+                initialValue: selectedCategory,
                 decoration: _inputDecoration("Category"),
                 items: const [
                   DropdownMenuItem(value: "Food", child: Text("Food")),
@@ -123,9 +134,11 @@ class _FormPageState extends State<FormPage> {
                   DropdownMenuItem(value: "Devices", child: Text("Devices")),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    selectedCategory = value!;
-                  });
+                  if (value != null) {
+                    setState(() {
+                      selectedCategory = value;
+                    });
+                  }
                 },
               ),
 

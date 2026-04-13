@@ -76,12 +76,13 @@ class ListPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
 
-              final name = data['name'] ?? 'No Name';
-              final location = data['location'] ?? 'No Location';
-              final user = data['name'] ?? 'Unknown';
-              final description = data['description'] ?? '';
-              final quantity = data['quantity'] ?? '';
-              final phone = data['phone'] ?? '';
+              final String name = (data['name'] ?? 'No Name').toString();
+              final String location =
+                  (data['location'] ?? 'No Location').toString();
+              final String user = (data['name'] ?? 'Unknown').toString();
+              final String description = (data['description'] ?? '').toString();
+              final String quantity = (data['quantity'] ?? '').toString();
+              final String phone = (data['phone'] ?? '').toString();
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -91,7 +92,7 @@ class ListPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -191,11 +192,13 @@ class ListPage extends StatelessWidget {
                                     color: Colors.green,
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    phone.isNotEmpty ? phone : "No phone",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                  Expanded(
+                                    child: Text(
+                                      phone.isNotEmpty ? phone : "No phone",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -242,14 +245,14 @@ class ListPage extends StatelessWidget {
                               elevation: 0,
                             ),
                             onPressed: () async {
-                              if (phone.toString().trim().isEmpty) {
+                              if (phone.trim().isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text("Phone number not available"),
                                   ),
                                 );
                               } else {
-                                await makePhoneCall(phone.toString());
+                                await makePhoneCall(phone);
                               }
                             },
                             child: const Text("Call"),
@@ -283,13 +286,15 @@ class ListPage extends StatelessWidget {
                                         Text("Description: $description"),
                                         Text("Location: $location"),
                                         Text("Quantity: $quantity"),
-                                        Text("Phone: $phone"),
+                                        Text(
+                                          "Phone: ${phone.isNotEmpty ? phone : 'No phone'}",
+                                        ),
                                       ],
                                     ),
                                     actions: [
                                       TextButton(
                                         onPressed: () async {
-                                          if (phone.toString().trim().isEmpty) {
+                                          if (phone.trim().isEmpty) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               const SnackBar(
@@ -300,9 +305,7 @@ class ListPage extends StatelessWidget {
                                             );
                                           } else {
                                             Navigator.pop(context);
-                                            await makePhoneCall(
-                                              phone.toString(),
-                                            );
+                                            await makePhoneCall(phone);
                                           }
                                         },
                                         child: const Text("Call"),

@@ -64,12 +64,12 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
-    }
-
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -144,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: const Color(0xFFF4F2F4),
       body: Stack(
         children: [
-          /// top purple background
           Container(
             height: 320,
             width: double.infinity,
@@ -163,7 +162,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -171,8 +169,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 30),
-
-                    /// small icon + title
                     const Icon(
                       Icons.people_alt_outlined,
                       color: Colors.white,
@@ -195,10 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                         fontSize: 15,
                       ),
                     ),
-
                     const SizedBox(height: 70),
-
-                    /// card
                     Container(
                       width: 380,
                       padding: const EdgeInsets.symmetric(
@@ -210,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withValues(alpha: 0.08),
                             blurRadius: 18,
                             offset: const Offset(0, 8),
                           ),

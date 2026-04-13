@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -30,6 +31,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
+        if (!mounted) return;
         setState(() {
           isLoading = false;
         });
@@ -40,6 +42,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           .collection('users')
           .doc(user.uid)
           .get();
+
+      if (!mounted) return;
 
       if (doc.exists) {
         final data = doc.data()!;
@@ -52,11 +56,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
         roleController.text = 'User';
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error loading profile: $e")),
       );
     }
 
+    if (!mounted) return;
     setState(() {
       isLoading = false;
     });
@@ -73,6 +79,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No user found")),
         );
@@ -91,17 +98,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile updated successfully")),
       );
 
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error saving profile: $e")),
       );
     }
 
+    if (!mounted) return;
     setState(() {
       isSaving = false;
     });
@@ -161,7 +172,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                       ),
                     ],
@@ -195,10 +206,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         TextFormField(
                           controller: phoneController,
                           keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
                           decoration: inputStyle("Phone", Icons.phone),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return "Enter phone";
+                            }
+                            if (!RegExp(r'^[0-9]{10}$')
+                                .hasMatch(value.trim())) {
+                              return "Enter valid 10-digit number";
                             }
                             return null;
                           },

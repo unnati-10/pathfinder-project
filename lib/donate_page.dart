@@ -47,6 +47,8 @@ class _DonatePageState extends State<DonatePage> {
         'time': FieldValue.serverTimestamp(),
       });
 
+      if (!mounted) return;
+
       nameController.clear();
       phoneController.clear();
       itemNameController.clear();
@@ -57,20 +59,23 @@ class _DonatePageState extends State<DonatePage> {
       setState(() {
         selectedCategory = 'Food';
         selectedCondition = 'Good';
+        isLoading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Donation submitted successfully")),
       );
     } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
     }
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   @override
@@ -109,7 +114,7 @@ class _DonatePageState extends State<DonatePage> {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: Colors.deepPurple.withOpacity(0.08),
+                color: Colors.deepPurple.withValues(alpha: 0.08),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -281,7 +286,7 @@ class _DonatePageState extends State<DonatePage> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       onChanged: onChanged,
       decoration: InputDecoration(
         filled: true,
