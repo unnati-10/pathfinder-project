@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 class ReceivePage extends StatefulWidget {
   const ReceivePage({super.key});
@@ -128,18 +129,31 @@ class _ReceivePageState extends State<ReceivePage> {
                 _buildLabel("Name"),
                 _buildTextField(
                   controller: nameController,
-                  hint: "Enter your name",
+                  hint: "Eg: Kailash",
                 ),
                 _buildLabel("Phone"),
                 _buildTextField(
                   controller: phoneController,
-                  hint: "Enter phone number",
+                  hint: "Eg: 9000011122",
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Phone number is required";
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(value.trim())) {
+                      return "Enter valid 10-digit number";
+                    }
+                    return null;
+                  },
                 ),
                 _buildLabel("What do you need?"),
                 _buildTextField(
                   controller: needController,
-                  hint: "Ex: Rice, Clothes, Books",
+                  hint: "Eg: Rice / Books / Blanket",
                 ),
                 _buildLabel("Category"),
                 _buildDropdown(
@@ -154,13 +168,16 @@ class _ReceivePageState extends State<ReceivePage> {
                 _buildLabel("Quantity"),
                 _buildTextField(
                   controller: quantityController,
-                  hint: "Enter quantity",
+                  hint: "Eg: 50 members",
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                 ),
                 _buildLabel("Location"),
                 _buildTextField(
                   controller: locationController,
-                  hint: "Enter your location",
+                  hint: "Eg: Secunderabad",
                 ),
                 const SizedBox(height: 22),
                 SizedBox(
@@ -214,16 +231,20 @@ class _ReceivePageState extends State<ReceivePage> {
     required TextEditingController controller,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return "This field is required";
-        }
-        return null;
-      },
+      inputFormatters: inputFormatters,
+      validator: validator ??
+          (value) {
+            if (value == null || value.trim().isEmpty) {
+              return "This field is required";
+            }
+            return null;
+          },
       decoration: InputDecoration(
         hintText: hint,
         filled: true,

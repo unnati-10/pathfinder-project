@@ -203,17 +203,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             return null;
                           },
                         ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: roleController,
-                          decoration: inputStyle("Role", Icons.badge),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Enter role";
-                            }
-                            return null;
-                          },
-                        ),
                         const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,

@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ListPage extends StatelessWidget {
   final String category;
 
   const ListPage({super.key, required this.category});
+
+  Future<void> makePhoneCall(String phoneNumber) async {
+    if (phoneNumber.trim().isEmpty) return;
+
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +37,10 @@ class ListPage extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // 🔥 FIXED STREAM (removed orderBy error)
         stream: FirebaseFirestore.instance
             .collection('donations')
             .where('category', isEqualTo: category)
             .snapshots(),
-
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -38,7 +50,6 @@ class ListPage extends StatelessWidget {
             );
           }
 
-          // 🔥 SHOW REAL ERROR
           if (snapshot.hasError) {
             return Center(
               child: Text(
@@ -120,14 +131,19 @@ class ListPage extends StatelessWidget {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on,
-                                      size: 14, color: Colors.redAccent),
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: Colors.redAccent,
+                                  ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    location,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                  Expanded(
+                                    child: Text(
+                                      location,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -135,14 +151,19 @@ class ListPage extends StatelessWidget {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.person,
-                                      size: 14, color: Colors.blueGrey),
+                                  const Icon(
+                                    Icons.person,
+                                    size: 14,
+                                    color: Colors.blueGrey,
+                                  ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    user,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+                                  Expanded(
+                                    child: Text(
+                                      user,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -154,6 +175,24 @@ class ListPage extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     "Qty: $quantity",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.phone,
+                                    size: 14,
+                                    color: Colors.green,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    phone.isNotEmpty ? phone : "No phone",
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
@@ -192,6 +231,32 @@ class ListPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              minimumSize: const Size(double.infinity, 38),
+                              elevation: 0,
+                            ),
+                            onPressed: () async {
+                              if (phone.toString().trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Phone number not available"),
+                                  ),
+                                );
+                              } else {
+                                await makePhoneCall(phone.toString());
+                              }
+                            },
+                            child: const Text("Call"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF6F35C8),
@@ -222,6 +287,26 @@ class ListPage extends StatelessWidget {
                                       ],
                                     ),
                                     actions: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          if (phone.toString().trim().isEmpty) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "Phone number not available",
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            Navigator.pop(context);
+                                            await makePhoneCall(
+                                              phone.toString(),
+                                            );
+                                          }
+                                        },
+                                        child: const Text("Call"),
+                                      ),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);

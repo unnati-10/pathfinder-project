@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class DonatePage extends StatefulWidget {
   const DonatePage({super.key});
@@ -131,18 +132,31 @@ class _DonatePageState extends State<DonatePage> {
                 _buildLabel("Name"),
                 _buildTextField(
                   controller: nameController,
-                  hint: "Enter your name",
+                  hint: "Eg: Kailash",
                 ),
                 _buildLabel("Phone"),
                 _buildTextField(
                   controller: phoneController,
-                  hint: "Enter phone number",
+                  hint: "Eg: 9000011122",
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Phone number is required";
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(value.trim())) {
+                      return "Enter valid 10-digit number";
+                    }
+                    return null;
+                  },
                 ),
                 _buildLabel("Item Description"),
                 _buildTextField(
                   controller: itemNameController,
-                  hint: "Enter item details",
+                  hint: "Eg: Rice / Clothes / Books",
                 ),
                 _buildLabel("Category"),
                 _buildDropdown(
@@ -157,8 +171,11 @@ class _DonatePageState extends State<DonatePage> {
                 _buildLabel("Quantity"),
                 _buildTextField(
                   controller: quantityController,
-                  hint: "Enter quantity",
+                  hint: "Eg: 10 packets",
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                 ),
                 _buildLabel("Condition"),
                 _buildDropdown(
@@ -173,12 +190,12 @@ class _DonatePageState extends State<DonatePage> {
                 _buildLabel("Location"),
                 _buildTextField(
                   controller: locationController,
-                  hint: "Enter pickup location",
+                  hint: "Eg: Hyderabad",
                 ),
                 _buildLabel("Expiry Date (for food)"),
                 _buildTextField(
                   controller: expiryController,
-                  hint: "Optional",
+                  hint: "Eg: 15 Apr 2026",
                 ),
                 const SizedBox(height: 22),
                 SizedBox(
@@ -230,16 +247,20 @@ class _DonatePageState extends State<DonatePage> {
     required TextEditingController controller,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      validator: (value) {
-        if (hint != "Optional" && (value == null || value.trim().isEmpty)) {
-          return "This field is required";
-        }
-        return null;
-      },
+      inputFormatters: inputFormatters,
+      validator: validator ??
+          (value) {
+            if (value == null || value.trim().isEmpty) {
+              return "This field is required";
+            }
+            return null;
+          },
       decoration: InputDecoration(
         hintText: hint,
         filled: true,

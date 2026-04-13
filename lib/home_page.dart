@@ -5,6 +5,7 @@ import 'form_page.dart';
 import 'list_page.dart';
 import 'dashboard_page.dart';
 import 'profile_page.dart';
+import 'ai_chat_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -68,8 +69,12 @@ class _HomePageState extends State<HomePage> {
         "icon": Icons.description_outlined,
         "page": const FormPage(),
       },
+      {
+        "title": "AI Help",
+        "icon": Icons.smart_toy_outlined,
+        "page": const AiChatPage(),
+      },
     ];
-
     if (searchText.trim().isEmpty) return items;
 
     return items.where((item) {
@@ -116,6 +121,25 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      "OneFinder",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Donate • Receive • Connect",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         const Expanded(
