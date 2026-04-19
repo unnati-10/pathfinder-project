@@ -37,6 +37,7 @@ class _ReceivePageState extends State<ReceivePage> {
         'category': selectedCategory,
         'need': needController.text.trim(),
         'quantity': quantityController.text.trim(),
+        "status": "pending",
         'location': locationController.text.trim(),
         'time': FieldValue.serverTimestamp(),
       });

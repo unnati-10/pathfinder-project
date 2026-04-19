@@ -42,6 +42,7 @@ class _DonatePageState extends State<DonatePage> {
         'description': itemNameController.text.trim(),
         'location': locationController.text.trim(),
         'quantity': quantityController.text.trim(),
+        "status": "pending",
         'condition': selectedCondition,
         'expiryDate': expiryController.text.trim(),
         'time': FieldValue.serverTimestamp(),

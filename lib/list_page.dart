@@ -47,6 +47,12 @@ class ListPage extends StatelessWidget {
     });
   }
 
+  Future<void> markAsCompleted(String docId) async {
+    await FirebaseFirestore.instance.collection('donations').doc(docId).update({
+      'status': 'completed',
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +107,9 @@ class ListPage extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
+              final doc = docs[index];
+              final data = doc.data() as Map<String, dynamic>;
+              final String docId = doc.id;
 
               final String name = (data['name'] ?? 'No Name').toString();
               final String location =
@@ -110,6 +118,9 @@ class ListPage extends StatelessWidget {
               final String description = (data['description'] ?? '').toString();
               final String quantity = (data['quantity'] ?? '').toString();
               final String phone = (data['phone'] ?? '').toString();
+              final String status = (data['status'] ?? 'pending').toString();
+
+              final bool isCompleted = status.toLowerCase() == 'completed';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -148,13 +159,43 @@ class ListPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isCompleted
+                                          ? Colors.green.shade100
+                                          : Colors.orange.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      isCompleted ? "COMPLETED" : "PENDING",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCompleted
+                                            ? Colors.green
+                                            : Colors.orange,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 6),
                               Row(
@@ -241,7 +282,9 @@ class ListPage extends StatelessWidget {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6F35C8),
+                              backgroundColor: isCompleted
+                                  ? Colors.grey
+                                  : const Color(0xFF6F35C8),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -249,34 +292,43 @@ class ListPage extends StatelessWidget {
                               minimumSize: const Size(double.infinity, 38),
                               elevation: 0,
                             ),
-                            onPressed: () async {
-                              try {
-                                await sendRequest(
-                                  donorName: name,
-                                  donorPhone: phone,
-                                  itemName: name,
-                                  quantity: quantity,
-                                  location: location,
-                                  description: description,
-                                  category: category,
-                                );
+                            onPressed: isCompleted
+                                ? null
+                                : () async {
+                                    try {
+                                      await sendRequest(
+                                        donorName: name,
+                                        donorPhone: phone,
+                                        itemName: name,
+                                        quantity: quantity,
+                                        location: location,
+                                        description: description,
+                                        category: category,
+                                      );
 
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Request sent for $name"),
-                                  ),
-                                );
-                              } catch (e) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Failed to send request: $e"),
-                                  ),
-                                );
-                              }
-                            },
-                            child: const Text("Request"),
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text("Request sent for $name"),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Failed to send request: $e",
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            child: Text(
+                              isCompleted ? "Completed" : "Request",
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -307,6 +359,46 @@ class ListPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              minimumSize: const Size(double.infinity, 38),
+                              elevation: 0,
+                            ),
+                            onPressed: isCompleted
+                                ? null
+                                : () async {
+                                    try {
+                                      await markAsCompleted(docId);
+
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Marked as completed"),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Failed to update status: $e",
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            child: const Text("Complete"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF6F35C8),
@@ -321,7 +413,7 @@ class ListPage extends StatelessWidget {
                             onPressed: () {
                               showDialog(
                                 context: context,
-                                builder: (context) {
+                                builder: (dialogContext) {
                                   return AlertDialog(
                                     title: Text(name),
                                     content: Column(
@@ -333,6 +425,7 @@ class ListPage extends StatelessWidget {
                                         Text("Description: $description"),
                                         Text("Location: $location"),
                                         Text("Quantity: $quantity"),
+                                        Text("Status: $status"),
                                         Text(
                                           "Phone: ${phone.isNotEmpty ? phone : 'No phone'}",
                                         ),
@@ -351,7 +444,7 @@ class ListPage extends StatelessWidget {
                                               ),
                                             );
                                           } else {
-                                            Navigator.pop(context);
+                                            Navigator.pop(dialogContext);
                                             await makePhoneCall(phone);
                                           }
                                         },
@@ -359,7 +452,7 @@ class ListPage extends StatelessWidget {
                                       ),
                                       TextButton(
                                         onPressed: () {
-                                          Navigator.pop(context);
+                                          Navigator.pop(dialogContext);
                                         },
                                         child: const Text("Close"),
                                       ),
