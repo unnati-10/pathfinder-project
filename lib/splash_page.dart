@@ -42,24 +42,18 @@ class SplashPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 145,
-                      height: 145,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF7B1FD3),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                const Color(0xFF7B1FD3).withValues(alpha: 0.25),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                      width: 150,
+                      height: 150,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF7B1FD3),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.volunteer_activism_outlined,
-                        color: Colors.white,
-                        size: 58,
+                      child: const Center(
+                        child: Icon(
+                          Icons.volunteer_activism,
+                          size: 70,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 26),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ListPage extends StatelessWidget {
@@ -18,6 +19,32 @@ class ListPage extends StatelessWidget {
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     }
+  }
+
+  Future<void> sendRequest({
+    required String donorName,
+    required String donorPhone,
+    required String itemName,
+    required String quantity,
+    required String location,
+    required String description,
+    required String category,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    await FirebaseFirestore.instance.collection('requests').add({
+      'requestedBy': user?.uid ?? '',
+      'requestedEmail': user?.email ?? '',
+      'donorName': donorName,
+      'donorPhone': donorPhone,
+      'itemName': itemName,
+      'quantity': quantity,
+      'location': location,
+      'description': description,
+      'category': category,
+      'status': 'pending',
+      'time': FieldValue.serverTimestamp(),
+    });
   }
 
   @override
@@ -222,12 +249,32 @@ class ListPage extends StatelessWidget {
                               minimumSize: const Size(double.infinity, 38),
                               elevation: 0,
                             ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Request sent for $name"),
-                                ),
-                              );
+                            onPressed: () async {
+                              try {
+                                await sendRequest(
+                                  donorName: name,
+                                  donorPhone: phone,
+                                  itemName: name,
+                                  quantity: quantity,
+                                  location: location,
+                                  description: description,
+                                  category: category,
+                                );
+
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Request sent for $name"),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Failed to send request: $e"),
+                                  ),
+                                );
+                              }
                             },
                             child: const Text("Request"),
                           ),

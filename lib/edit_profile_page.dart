@@ -15,7 +15,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController roleController = TextEditingController();
 
   bool isLoading = true;
   bool isSaving = false;
@@ -49,11 +48,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final data = doc.data()!;
         nameController.text = data['name'] ?? '';
         phoneController.text = data['phone'] ?? '';
-        roleController.text = data['role'] ?? 'User';
       } else {
         nameController.text = user.email?.split('@')[0] ?? '';
         phoneController.text = '';
-        roleController.text = 'User';
       }
     } catch (e) {
       if (!mounted) return;
@@ -94,7 +91,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'email': user.email ?? '',
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
-        'role': roleController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -122,7 +118,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     nameController.dispose();
     phoneController.dispose();
-    roleController.dispose();
     super.dispose();
   }
 
@@ -130,8 +125,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: const Color(0xFF6F35C8)),
+      filled: true,
+      fillColor: const Color(0xFFF8F5FC),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -166,6 +164,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 padding: const EdgeInsets.all(16),
                 child: Container(
                   width: double.infinity,
+                  constraints: const BoxConstraints(maxWidth: 400),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -174,6 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -235,8 +235,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               ),
                             ),
                             child: isSaving
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
                                   )
                                 : const Text(
                                     "Save Profile",
