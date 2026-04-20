@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReceivePage extends StatefulWidget {
   const ReceivePage({super.key});
@@ -35,10 +36,11 @@ class _ReceivePageState extends State<ReceivePage> {
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
         'category': selectedCategory,
-        'need': needController.text.trim(),
+        'description': needController.text.trim(),
         'quantity': quantityController.text.trim(),
-        "status": "pending",
+        'status': 'pending',
         'location': locationController.text.trim(),
+        'userId': FirebaseAuth.instance.currentUser!.uid,
         'time': FieldValue.serverTimestamp(),
       });
 

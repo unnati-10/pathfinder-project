@@ -8,6 +8,8 @@ import 'dashboard_page.dart';
 import 'profile_page.dart';
 import 'ai_chat_page.dart';
 import 'list_page.dart';
+import 'my_donations_page.dart';
+import 'my_requests_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -70,6 +72,16 @@ class _HomePageState extends State<HomePage> {
         "title": "Form",
         "icon": Icons.description_outlined,
         "page": const FormPage(),
+      },
+      {
+        "title": "My Donations",
+        "icon": Icons.history,
+        "page": const MyDonationsPage(),
+      },
+      {
+        "title": "My Requests",
+        "icon": Icons.receipt_long,
+        "page": const MyRequestsPage(),
       },
       {
         "title": "AI Help",

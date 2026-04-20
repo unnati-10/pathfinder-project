@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DonatePage extends StatefulWidget {
   const DonatePage({super.key});
@@ -45,6 +46,7 @@ class _DonatePageState extends State<DonatePage> {
         "status": "pending",
         'condition': selectedCondition,
         'expiryDate': expiryController.text.trim(),
+        'userId': FirebaseAuth.instance.currentUser!.uid,
         'time': FieldValue.serverTimestamp(),
       });
 
