@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import 'splash_page.dart';
+import 'dart:html' as html;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    html.document.title = "OneFinder";
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SplashWrapper(),

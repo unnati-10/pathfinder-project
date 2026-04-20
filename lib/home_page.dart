@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'donate_page.dart';
 import 'receive_page.dart';
 import 'form_page.dart';
@@ -75,6 +77,7 @@ class _HomePageState extends State<HomePage> {
         "page": const AiChatPage(),
       },
     ];
+
     if (searchText.trim().isEmpty) return items;
 
     return items.where((item) {
@@ -87,6 +90,32 @@ class _HomePageState extends State<HomePage> {
     return filteredQuickActions.isNotEmpty ||
         filteredCategories.isNotEmpty ||
         filteredManageItems.isNotEmpty;
+  }
+
+  Future<String> getUserName() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        return "User";
+      }
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        return data['username']?.toString() ??
+            data['name']?.toString() ??
+            "User";
+      }
+
+      return user.displayName ?? "User";
+    } catch (e) {
+      return "User";
+    }
   }
 
   @override
@@ -142,14 +171,21 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Expanded(
-                          child: Text(
-                            "Hello, Unnati 👋",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        Expanded(
+                          child: FutureBuilder<String>(
+                            future: getUserName(),
+                            builder: (context, snapshot) {
+                              final userName = snapshot.data ?? "User";
+
+                              return Text(
+                                "Hello, $userName 👋",
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         GestureDetector(

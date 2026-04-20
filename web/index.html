@@ -7,15 +7,29 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="OneFinder App">
 
-  <!-- iOS support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="OneFinder">
 
-  <!-- 🔥 Browser Tab Title (with emoji icon) -->
-  <title>❤️ OneFinder</title>
+  <title>OneFinder</title>
+  <link rel="icon" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
 
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    function forceTitle() {
+      document.title = "OneFinder";
+    }
+
+    forceTitle();
+
+    window.addEventListener("load", forceTitle);
+
+    document.addEventListener("visibilitychange", forceTitle);
+
+    setInterval(forceTitle, 500);
+  </script>
 </head>
 
 <body>

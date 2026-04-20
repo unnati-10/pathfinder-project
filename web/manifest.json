@@ -1,11 +1,11 @@
 {
-    "name": "app",
-    "short_name": "app",
+    "name": "OneFinder",
+    "short_name": "OneFinder",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F6F1FB",
+    "theme_color": "#6A1B9A",
+    "description": "OneFinder App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
