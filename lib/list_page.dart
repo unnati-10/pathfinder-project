@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 class ListPage extends StatelessWidget {
   final String category;
@@ -19,6 +21,151 @@ class ListPage extends StatelessWidget {
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     }
+  }
+
+  void shareItem(
+    String name,
+    String description,
+    String category,
+    String phone,
+    String location,
+    String quantity,
+  ) {
+    String text = "OneFinder Donation\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Location: $location\n"
+        "Quantity: $quantity\n"
+        "Details: $description\n\n"
+        "👉 Please contact if available";
+    Share.share(text);
+  }
+
+  Future<void> openWhatsApp(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+    String location,
+    String quantity,
+  ) async {
+    String message = "OneFinder Donation\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Location: $location\n"
+        "Quantity: $quantity\n"
+        "Details: $description\n\n"
+        "👉 Please contact if available";
+
+    String url = "https://wa.me/?text=${Uri.encodeComponent(message)}";
+    final Uri uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("WhatsApp not installed")),
+      );
+    }
+  }
+
+  Future<void> copyItemDetails(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+    String location,
+    String quantity,
+  ) async {
+    String text = "OneFinder Donation\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Location: $location\n"
+        "Quantity: $quantity\n"
+        "Details: $description\n\n"
+        "👉 Please contact if available";
+
+    await Clipboard.setData(ClipboardData(text: text));
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Copied successfully")),
+    );
+  }
+
+  void showShareOptions(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+    String location,
+    String quantity,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (bottomContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text("Share"),
+                onTap: () {
+                  Navigator.pop(bottomContext);
+                  shareItem(
+                    name,
+                    description,
+                    category,
+                    phone,
+                    location,
+                    quantity,
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Colors.green),
+                title: const Text("WhatsApp"),
+                onTap: () {
+                  Navigator.pop(bottomContext);
+                  openWhatsApp(
+                    context,
+                    name,
+                    description,
+                    category,
+                    phone,
+                    location,
+                    quantity,
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text("Copy"),
+                onTap: () {
+                  Navigator.pop(bottomContext);
+                  copyItemDetails(
+                    context,
+                    name,
+                    description,
+                    category,
+                    phone,
+                    location,
+                    quantity,
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> sendRequest({
@@ -172,7 +319,25 @@ class ListPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.share,
+                                      color: Color(0xFF6F35C8),
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      showShareOptions(
+                                        context,
+                                        name,
+                                        description,
+                                        category,
+                                        phone,
+                                        location,
+                                        quantity,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,

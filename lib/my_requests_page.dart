@@ -1,10 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'edit_request_page.dart';
 
 class MyRequestsPage extends StatelessWidget {
   const MyRequestsPage({super.key});
+
+  // normal share
+  void shareItem(
+      String name, String description, String category, String phone) {
+    String text = "OneFinder Request\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Details: $description";
+    Share.share(text);
+  }
+
+  // ✅ DIRECT WHATSAPP OPEN
+  Future<void> openWhatsApp(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+  ) async {
+    String message = "OneFinder Request\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Details: $description";
+
+    String url = "https://wa.me/?text=${Uri.encodeComponent(message)}";
+    final Uri uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("WhatsApp not installed")),
+      );
+    }
+  }
+
+  // copy
+  Future<void> copyRequest(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+  ) async {
+    String text = "OneFinder Request\n\n"
+        "Item: $name\n"
+        "Category: $category\n"
+        "Phone: $phone\n"
+        "Details: $description";
+    "👉 Please contact if available";
+
+    await Clipboard.setData(ClipboardData(text: text));
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Copied successfully")),
+    );
+  }
 
   Future<void> deleteRequest(BuildContext context, String docId) async {
     final confirm = await showDialog<bool>(
@@ -12,18 +77,14 @@ class MyRequestsPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text("Delete Request"),
-          content: const Text("Are you sure you want to delete this request?"),
+          content: const Text("Are you sure?"),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
+              onPressed: () => Navigator.pop(context, false),
               child: const Text("Cancel"),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
+              onPressed: () => Navigator.pop(context, true),
               child: const Text(
                 "Delete",
                 style: TextStyle(color: Colors.red),
@@ -43,11 +104,54 @@ class MyRequestsPage extends StatelessWidget {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Request deleted successfully"),
-        ),
+        const SnackBar(content: Text("Deleted successfully")),
       );
     }
+  }
+
+  // bottom sheet
+  void showShareOptions(
+    BuildContext context,
+    String name,
+    String description,
+    String category,
+    String phone,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text("Share"),
+                onTap: () {
+                  Navigator.pop(context);
+                  shareItem(name, description, category, phone);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.message, color: Colors.green),
+                title: const Text("WhatsApp"),
+                onTap: () {
+                  Navigator.pop(context);
+                  openWhatsApp(context, name, description, category, phone);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text("Copy"),
+                onTap: () {
+                  Navigator.pop(context);
+                  copyRequest(context, name, description, category, phone);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -55,14 +159,8 @@ class MyRequestsPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("My Requests"),
-          backgroundColor: const Color(0xFF7B1FD3),
-        ),
-        body: const Center(
-          child: Text("No user logged in"),
-        ),
+      return const Scaffold(
+        body: Center(child: Text("No user logged in")),
       );
     }
 
@@ -83,15 +181,11 @@ class MyRequestsPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text("Error: ${snapshot.error}"),
-            );
+            return Center(child: Text("Error: ${snapshot.error}"));
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("No requests yet"),
-            );
+            return const Center(child: Text("No requests yet"));
           }
 
           final docs = snapshot.data!.docs;
@@ -102,6 +196,11 @@ class MyRequestsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final doc = docs[index];
               final data = doc.data() as Map<String, dynamic>;
+
+              final name = data['name'] ?? '';
+              final description = data['description'] ?? '';
+              final category = data['category'] ?? '';
+              final phone = data['phone'] ?? '';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -117,7 +216,7 @@ class MyRequestsPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            data['name'] ?? '',
+                            name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -125,7 +224,20 @@ class MyRequestsPage extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                        // share button
                         IconButton(
+                          icon: const Icon(Icons.share, size: 20),
+                          onPressed: () {
+                            showShareOptions(
+                                context, name, description, category, phone);
+                          },
+                        ),
+
+                        // edit
+                        IconButton(
+                          icon:
+                              const Icon(Icons.edit, color: Color(0xFF7B1FD3)),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -137,28 +249,23 @@ class MyRequestsPage extends StatelessWidget {
                               ),
                             );
                           },
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Color(0xFF7B1FD3),
-                          ),
                         ),
+
+                        // delete
                         IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
                             deleteRequest(context, doc.id);
                           },
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.red,
-                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text("Phone: ${data['phone'] ?? ''}"),
-                    Text("Category: ${data['category'] ?? ''}"),
-                    Text("Description: ${data['description'] ?? ''}"),
+                    Text("Phone: $phone"),
+                    Text("Category: $category"),
+                    Text("Description: $description"),
                     Text("Location: ${data['location'] ?? ''}"),
-                    Text("Quantity Needed: ${data['quantity'] ?? ''}"),
+                    Text("Quantity: ${data['quantity'] ?? ''}"),
                   ],
                 ),
               );

@@ -43,9 +43,10 @@ class _DonatePageState extends State<DonatePage> {
         'description': itemNameController.text.trim(),
         'location': locationController.text.trim(),
         'quantity': quantityController.text.trim(),
-        "status": "pending",
+        'status': 'pending',
         'condition': selectedCondition,
-        'expiryDate': expiryController.text.trim(),
+        'expiryDate':
+            selectedCategory == 'Food' ? expiryController.text.trim() : '',
         'userId': FirebaseAuth.instance.currentUser!.uid,
         'time': FieldValue.serverTimestamp(),
       });
@@ -94,6 +95,8 @@ class _DonatePageState extends State<DonatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isFoodCategory = selectedCategory == 'Food';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F1FA),
       appBar: AppBar(
@@ -173,6 +176,9 @@ class _DonatePageState extends State<DonatePage> {
                   onChanged: (value) {
                     setState(() {
                       selectedCategory = value!;
+                      if (selectedCategory != 'Food') {
+                        expiryController.clear();
+                      }
                     });
                   },
                 ),
@@ -180,10 +186,7 @@ class _DonatePageState extends State<DonatePage> {
                 _buildTextField(
                   controller: quantityController,
                   hint: "Eg: 10 packets",
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  keyboardType: TextInputType.text,
                 ),
                 _buildLabel("Condition"),
                 _buildDropdown(
@@ -200,11 +203,20 @@ class _DonatePageState extends State<DonatePage> {
                   controller: locationController,
                   hint: "Eg: Hyderabad",
                 ),
-                _buildLabel("Expiry Date (for food)"),
-                _buildTextField(
-                  controller: expiryController,
-                  hint: "Eg: 15 Apr 2026",
-                ),
+                if (isFoodCategory) ...[
+                  _buildLabel("Expiry Date"),
+                  _buildTextField(
+                    controller: expiryController,
+                    hint: "Eg: 15 Apr 2026",
+                    validator: (value) {
+                      if (selectedCategory == 'Food' &&
+                          (value == null || value.trim().isEmpty)) {
+                        return "Expiry date is required for food";
+                      }
+                      return null;
+                    },
+                  ),
+                ],
                 const SizedBox(height: 22),
                 SizedBox(
                   width: double.infinity,

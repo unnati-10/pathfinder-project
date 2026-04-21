@@ -10,6 +10,7 @@ import 'ai_chat_page.dart';
 import 'list_page.dart';
 import 'my_donations_page.dart';
 import 'my_requests_page.dart';
+import 'feedback_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -217,6 +218,24 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const FeedbackPage(),
+                              ),
+                            );
+                          },
+                          child: const CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: Icon(
+                              Icons.feedback,
+                              color: Color(0xFF7B1FD3),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -320,6 +339,7 @@ class _HomePageState extends State<HomePage> {
                                 crossAxisCount: 4,
                                 crossAxisSpacing: 10,
                                 mainAxisSpacing: 10,
+                                childAspectRatio: 0.95,
                               ),
                               itemBuilder: (context, index) {
                                 final item = filteredCategories[index];
@@ -360,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                                     padding: EdgeInsets.only(
                                       right: item == filteredManageItems.last
                                           ? 0
-                                          : 10,
+                                          : 8,
                                     ),
                                     child: _smallCard(
                                       title: item["title"] as String,
@@ -449,20 +469,28 @@ class _HomePageState extends State<HomePage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 90,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: const Color(0xFF7B1FD3)),
+            Icon(icon, size: 20, color: const Color(0xFF7B1FD3)),
             const SizedBox(height: 6),
             Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
