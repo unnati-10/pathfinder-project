@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/gemini_service.dart';
 
 class AiChatPage extends StatefulWidget {
   const AiChatPage({super.key});
@@ -9,6 +10,10 @@ class AiChatPage extends StatefulWidget {
 
 class _AiChatPageState extends State<AiChatPage> {
   final TextEditingController messageController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+  final GeminiService geminiService = GeminiService();
+
+  bool isLoading = false;
 
   final List<Map<String, String>> messages = [
     {
@@ -18,7 +23,7 @@ class _AiChatPageState extends State<AiChatPage> {
     },
   ];
 
-  void sendMessage() {
+  Future<void> sendMessage() async {
     final userMessage = messageController.text.trim();
     if (userMessage.isEmpty) return;
 
@@ -27,18 +32,67 @@ class _AiChatPageState extends State<AiChatPage> {
         "sender": "user",
         "text": userMessage,
       });
+      isLoading = true;
     });
 
-    final botReply = getBotReply(userMessage);
+    messageController.clear();
+    scrollToBottom();
+
+    final aiPrompt = """
+You are OneFinder AI, a helper for a donation and request app.
+
+Answer in simple words.
+Keep answer short and useful.
+Help users with:
+- how to donate
+- how to receive
+- category selection
+- contact donor
+- form filling
+- quantity
+- profile
+- search
+
+User question: $userMessage
+""";
+
+    String botReply;
+
+    try {
+      botReply = await geminiService.askAI(aiPrompt);
+
+      if (botReply.trim().isEmpty ||
+          botReply.startsWith("Error:") ||
+          botReply.contains("Taking too long")) {
+        botReply = getBotReply(userMessage);
+      }
+    } catch (e) {
+      botReply = getBotReply(userMessage);
+    }
+
+    if (!mounted) return;
 
     setState(() {
       messages.add({
         "sender": "bot",
         "text": botReply,
       });
+      isLoading = false;
     });
 
-    messageController.clear();
+    scrollToBottom();
+  }
+
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   String getBotReply(String message) {
@@ -51,24 +105,19 @@ class _AiChatPageState extends State<AiChatPage> {
     } else if (text.contains("contact") || text.contains("call")) {
       return "Open the item list and tap the Call button to contact the donor directly.";
     } else if (text.contains("description") || text.contains("item")) {
-      return "Write clear item name like Rice, Books, Clothes, Phone, Blanket etc.";
+      return "Write clear item name like Rice, Books, Clothes, Phone or Blanket.";
     } else if (text.contains("quantity")) {
       return "Write quantity clearly like 5 books, 10 packets, 2 phones or 50 members.";
     } else if (text.contains("form") || text.contains("submit")) {
       return "Make sure all required fields are filled and phone number is valid 10-digit.";
     } else if (text.contains("category")) {
       return "Choose category based on item: Food, Clothes, Books or Devices.";
-    } else if (text.contains("what can i donate") ||
-        text.contains("donate items")) {
-      return "You can donate food, clothes, books, electronics or any useful items.";
     } else if (text.contains("food")) {
       return "Yes, you can donate food. Make sure it is fresh and mention expiry date.";
     } else if (text.contains("search")) {
       return "Use the search bar on home page to find items or categories.";
     } else if (text.contains("profile") || text.contains("edit")) {
       return "Click profile icon on top right to view or edit your profile.";
-    } else if (text.contains("request") || text.contains("see requests")) {
-      return "You can see requests or items in category list or dashboard.";
     } else if (text.contains("hi") || text.contains("hello")) {
       return "Hello 👋 I am OneFinder AI. How can I help you?";
     } else {
@@ -79,7 +128,9 @@ class _AiChatPageState extends State<AiChatPage> {
   Widget buildMessageBubble(Map<String, String> message) {
     final isUser = message["sender"] == "user";
 
-    return Align(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
@@ -93,6 +144,7 @@ class _AiChatPageState extends State<AiChatPage> {
           message["text"] ?? "",
           style: TextStyle(
             color: isUser ? Colors.white : Colors.black87,
+            fontSize: 14,
           ),
         ),
       ),
@@ -110,6 +162,13 @@ class _AiChatPageState extends State<AiChatPage> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    messageController.dispose();
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -141,9 +200,39 @@ class _AiChatPageState extends State<AiChatPage> {
           ),
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               padding: const EdgeInsets.all(10),
-              itemCount: messages.length,
+              itemCount: messages.length + (isLoading ? 1 : 0),
               itemBuilder: (context, index) {
+                if (isLoading && index == messages.length) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 10),
+                          Text("Thinking..."),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 return buildMessageBubble(messages[index]);
               },
             ),
@@ -162,6 +251,10 @@ class _AiChatPageState extends State<AiChatPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
                     ),
                     onSubmitted: (_) => sendMessage(),
                   ),
@@ -170,7 +263,7 @@ class _AiChatPageState extends State<AiChatPage> {
                 CircleAvatar(
                   backgroundColor: const Color(0xFF7B1FD3),
                   child: IconButton(
-                    onPressed: sendMessage,
+                    onPressed: isLoading ? null : sendMessage,
                     icon: const Icon(Icons.send, color: Colors.white),
                   ),
                 ),
