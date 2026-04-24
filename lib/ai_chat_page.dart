@@ -63,7 +63,10 @@ User question: $userMessage
 
       if (botReply.trim().isEmpty ||
           botReply.startsWith("Error:") ||
-          botReply.contains("Taking too long")) {
+          botReply.contains("Taking too long") ||
+          botReply.contains("RESOURCE_EXHAUSTED") ||
+          botReply.contains("Quota exceeded") ||
+          botReply.contains("UNAVAILABLE")) {
         botReply = getBotReply(userMessage);
       }
     } catch (e) {
