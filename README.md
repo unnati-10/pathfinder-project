@@ -1,16 +1,25 @@
-# app
+# OneFinder
 
-A new Flutter project.
+OneFinder is a donation and request platform that connects donors with people in need.
 
-## Getting Started
+## Features
+- Login and Signup
+- Donate items
+- Receive requests
+- Categories: Food, Clothes, Books, Devices
+- Search option
+- Dashboard
+- Gemini AI support
 
-This project is a starting point for a Flutter application.
+## Tech Stack
+- Flutter
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Hosting
 
-A few resources to get you started if this is your first Flutter project:
+## Live App
+https://pathfinder-project-b212c.web.app
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Team
+- Unnati
+- Team Members
